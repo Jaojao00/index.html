@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR & KPI Management System</title>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div class="app-body">
+            <div class="sidebar">
+                <div class="logo"><i class='bx bx-layer'></i> KPI<span>System</span></div>
+                <div class="sidebar-version">v2.0 · Tháng {{ currentMonth }}/{{ currentYear }}</div>
+                <nav>
+                    <a href="#" :class="{active: currentTab === 'home'}" @click="currentTab = 'home'">
+                        <i class='bx bx-home-alt icon'></i> Trang Chủ
+                    </a>
+                    <a href="#" :class="{active: currentTab === 'dashboard'}" @click="currentTab = 'dashboard'">
+                        <i class='bx bx-grid-alt icon'></i> Dashboard
+                    </a>
+                    <a href="#" :class="{active: currentTab === 'employees'}" @click="currentTab = 'employees'">
+                        <i class='bx bx-user-circle icon'></i> Nhân sự
+                    </a>
+                    <a href="#" :class="{active: currentTab === 'timesheet'}" @click="currentTab = 'timesheet'">
+                        <i class='bx bx-time icon'></i> Bảng Chấm Công
+                    </a>
+                    <a href="#" :class="{active: currentTab === 'schedule'}" @click="currentTab = 'schedule'">
+                        <i class='bx bx-calendar icon'></i> Lịch làm việc
+                    </a>
+                    <a href="#" :class="{active: currentTab === 'report'}" @click="currentTab = 'report'">
+                        <i class='bx bx-pie-chart-alt-2 icon'></i> Báo Cáo Thống Kê
+                    </a>
+                    <a href="#" :class="{active: currentTab === 'leave'}" @click="currentTab = 'leave'">
+                        <i class='bx bx-calendar-x icon'></i> Xin Nghỉ Phép
+                    </a>
+                    <a href="#" :class="{active: currentTab === 'absence'}"
+                        @click="currentTab = 'absence'; fetchAbsenceData()">
+                        <i class='bx bx-calendar-check icon'></i> Kiểm Tra Ngày Nghỉ
+                    </a>
+                    <a href="#" :class="{active: currentTab === 'complaints'}" @click="currentTab = 'complaints'">
+                        <i class='bx bx-git-pull-request icon'></i> Đối soát (Ops)
+                    </a>
+                    <a href="#" :class="{active: currentTab === 'vendor'}" @click="currentTab = 'vendor'">
+                        <i class='bx bx-check-shield icon'></i> Vendor Approve
+                    </a>
+                    <a href="#" :class="{active: currentTab === 'import'}" @click="currentTab = 'import'">
+                        <i class='bx bx-cloud-upload icon'></i> Automation Import
+                    </a>
+                    <a href="#" :class="{active: currentTab === 'checkReport'}" @click="currentTab = 'checkReport'">
+                        <i class='bx bx-task icon'></i> Check Lịch & Báo Cáo
+                    </a>
+                </nav>
+                <!-- Sidebar Footer: Logo + Contact -->
+                <div class="sidebar-footer">
+                    <img src="/logo.png" alt="Tài Nguyễn HR Logo" class="sidebar-logo"
+                        onerror="this.style.display='none'">
+                    <div class="sidebar-owner-name">Tài Nguyễn HR</div>
+                    <div class="sidebar-contact">
+                        <a href="mailto:tainguyenhr.dev@gmail.com" class="sidebar-contact-item"
+                            title="tainguyenhr.dev@gmail.com">
+                            <i class='bx bx-envelope'></i>
+                            <span>tainguyenhr.dev@gmail.com</span>
+                        </a>
+                        <a href="https://zalo.me/0586482344" target="_blank" class="sidebar-contact-item"
+                            title="Zalo: 0586482344">
+                            <svg class="zalo-icon" viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                                <path
+                                    d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 16.688c-.469.469-1.094.703-1.719.703-.547 0-1.094-.187-1.562-.562l-3.375-3.375v4.312c0 .469-.187.937-.562 1.25-.375.375-.844.562-1.313.562-.469 0-.937-.187-1.312-.562-.375-.375-.563-.844-.563-1.313V7.125c0-.937.75-1.687 1.688-1.687.469 0 .937.187 1.312.562l4.125 4.125c.375.375.563.844.563 1.313 0 .469-.188.938-.563 1.313l-.937.937 2.812 2.812c.375.375.563.844.563 1.313-.047.469-.235.938-.657 1.375z" />
+                            </svg>
+                            <span>0586 482 344</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <header>
+                    <h2>{{ getTabTitle() }}</h2>
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Admin">
+                        <span>Admin System</span>
+                    </div>
+                </header>
+
+                <div class="content-wrapper">
+
+                    <!-- TAB: HOME -->
+                    <div v-if="currentTab === 'home'" class="tab-home">
+
+                        <!-- Hero Section -->
+                        <div class="home-hero">
+                            <div class="home-hero-bg"></div>
+                            <div class="home-hero-content">
+                                <div class="home-hero-badge"><i class='bx bx-shield-quarter'></i> Hệ thống tự động hoá
+                                </div>
+                                <h1 class="home-hero-title">KPI <span>Automation</span> System</h1>
+                                <p class="home-hero-sub">Nền tảng quản lý KPI nhân sự thông minh — tự động phân tích,
+                                    đối chiếu và báo cáo ngày công theo thời gian thực.</p>
+                                <div class="home-hero-actions">
+                                    <button class="home-cta-primary" @click="currentTab = 'import'">
+                                        <i class='bx bx-cloud-upload'></i> Import Dữ Liệu
+                                    </button>
+                                    <button class="home-cta-secondary" @click="currentTab = 'dashboard'">
+                                        <i class='bx bx-grid-alt'></i> Xem Dashboard
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="home-hero-visual">
+                                <div class="hero-ring ring-1"></div>
+                                <div class="hero-ring ring-2"></div>
+                                <div class="hero-ring ring-3"></div>
+                                <div class="hero-icon-center"><i class='bx bx-layer'></i></div>
+                                <div class="hero-float-badge badge-top">
+                                    <i class='bx bx-check-circle'></i>
+                                    <span>{{ dashboardData.stats?.pass || 0 }} PASS</span>
+                                </div>
+                                <div class="hero-float-badge badge-bottom">
+                                    <i class='bx bx-group'></i>
+                                    <span>{{ dashboardData.stats?.total || 0 }} Nhân sự</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KPI Stats Cards -->
+                        <div class="home-stats-row">
+                            <div class="home-stat-card" @click="currentTab = 'dashboard'">
+                                <div class="hsc-icon hsc-blue"><i class='bx bx-group'></i></div>
+                                <div class="hsc-body">
+                                    <div class="hsc-value">{{ dashboardData.stats?.total || 0 }}</div>
+                                    <div class="hsc-label">Tổng Nhân Sự</div>
+                                    <div class="hsc-sub">Được quản lý trong hệ thống</div>
+                                </div>
+                                <i class='bx bx-chevron-right hsc-arrow'></i>
+                            </div>
+                            <div class="home-stat-card" @click="currentTab = 'dashboard'">
+                                <div class="hsc-icon hsc-green"><i class='bx bx-check-circle'></i></div>
+                                <div class="hsc-body">
+                                    <div class="hsc-value text-success">{{ dashboardData.stats?.pass || 0 }}</div>
+                                    <div class="hsc-label">Đạt KPI (PASS)</div>
+                                    <div class="hsc-sub">{{ dashboardData.stats?.total ?
+                                        Math.round((dashboardData.stats.pass / dashboardData.stats.total) * 100) : 0 }}%
+                                        tỷ lệ đạt</div>
+                                </div>
+                                <i class='bx bx-chevron-right hsc-arrow'></i>
+                            </div>
+                            <div class="home-stat-card" @click="currentTab = 'dashboard'">
+                                <div class="hsc-icon hsc-red"><i class='bx bx-x-circle'></i></div>
+                                <div class="hsc-body">
+                                    <div class="hsc-value text-danger">{{ dashboardData.stats?.fail || 0 }}</div>
+                                    <div class="hsc-label">Không Đạt (FAIL)</div>
+                                    <div class="hsc-sub">Cần xem xét và đối soát</div>
+                                </div>
+                                <i class='bx bx-chevron-right hsc-arrow'></i>
+                            </div>
+                            <div class="home-stat-card" @click="currentTab = 'absence'; fetchAbsenceData()">
+                                <div class="hsc-icon hsc-orange"><i class='bx bx-calendar-x'></i></div>
+                                <div class="hsc-body">
+                                    <div class="hsc-value" style="color: #f59e0b;">{{ absenceData?.length || 0 }}</div>
+                                    <div class="hsc-label">Trường Hợp Nghỉ</div>
+                                    <div class="hsc-sub">Cần kiểm tra ngày nghỉ</div>
+                                </div>
+                                <i class='bx bx-chevron-right hsc-arrow'></i>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Grid: Quick Actions + Workflow + System Info -->
+                        <div class="home-bottom-grid">
+
+                            <!-- Quick Actions -->
+                            <div class="home-card home-quick-actions">
+                                <div class="hcard-header">
+                                    <i class='bx bx-zap'></i>
+                                    <span>Thao Tác Nhanh</span>
+                                </div>
+                                <div class="qa-list">
+                                    <div class="qa-item" @click="currentTab = 'import'">
+                                        <div class="qa-icon" style="background: rgba(99,102,241,0.15); color: #818cf8;">
+                                            <i class='bx bx-cloud-upload'></i>
+                                        </div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">Upload Timesheet</div>
+                                            <div class="qa-desc">Nhập file chấm công Excel</div>
+                                        </div>
+                                        <i class='bx bx-chevron-right qa-arrow'></i>
+                                    </div>
+                                    <div class="qa-item" @click="currentTab = 'import'">
+                                        <div class="qa-icon" style="background: rgba(16,185,129,0.15); color: #34d399;">
+                                            <i class='bx bx-calendar-plus'></i>
+                                        </div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">Upload Lịch Làm Việc</div>
+                                            <div class="qa-desc">Nhập file lịch dự kiến</div>
+                                        </div>
+                                        <i class='bx bx-chevron-right qa-arrow'></i>
+                                    </div>
+                                    <div class="qa-item" @click="runKPIEngine(); currentTab = 'dashboard'">
+                                        <div class="qa-icon" style="background: rgba(245,158,11,0.15); color: #fbbf24;">
+                                            <i class='bx bx-play-circle'></i>
+                                        </div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">Chạy KPI Engine</div>
+                                            <div class="qa-desc">Tính toán lại toàn bộ KPI</div>
+                                        </div>
+                                        <i class='bx bx-chevron-right qa-arrow'></i>
+                                    </div>
+                                    <div class="qa-item" @click="currentTab = 'report'">
+                                        <div class="qa-icon" style="background: rgba(236,72,153,0.15); color: #f472b6;">
+                                            <i class='bx bx-pie-chart-alt-2'></i>
+                                        </div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">Xem Báo Cáo Tổng Hợp</div>
+                                            <div class="qa-desc">Thống kê chi tiết theo loại CTV</div>
+                                        </div>
+                                        <i class='bx bx-chevron-right qa-arrow'></i>
+                                    </div>
+                                    <div class="qa-item" @click="currentTab = 'absence'; fetchAbsenceData()">
+                                        <div class="qa-icon" style="background: rgba(239,68,68,0.15); color: #f87171;">
+                                            <i class='bx bx-calendar-check'></i>
+                                        </div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">Kiểm Tra Ngày Nghỉ</div>
+                                            <div class="qa-desc">Đối chiếu vắng ngoài lịch</div>
+                                        </div>
+                                        <i class='bx bx-chevron-right qa-arrow'></i>
+                                    </div>
+                                    <div class="qa-item" @click="currentTab = 'checkReport'">
+                                        <div class="qa-icon" style="background: rgba(14,165,233,0.15); color: #38bdf8;">
+                                            <i class='bx bx-task'></i>
+                                        </div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">Check Lịch & Báo Cáo</div>
+                                            <div class="qa-desc">Kiểm tra lịch chi tiết của từng CTV</div>
+                                        </div>
+                                        <i class='bx bx-chevron-right qa-arrow'></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Workflow Guide -->
+                            <div class="home-card home-workflow">
+                                <div class="hcard-header">
+                                    <i class='bx bx-git-branch'></i>
+                                    <span>Quy Trình Làm Việc</span>
+                                </div>
+                                <div class="workflow-steps">
+                                    <div class="wf-step">
+                                        <div class="wf-num">01</div>
+                                        <div class="wf-connector"></div>
+                                        <div class="wf-content">
+                                            <div class="wf-title"><i class='bx bx-cloud-upload'></i> Import Dữ Liệu
+                                            </div>
+                                            <div class="wf-desc">Upload Timesheet chấm công & Lịch làm việc dự kiến
+                                                (.xlsx)</div>
+                                        </div>
+                                    </div>
+                                    <div class="wf-step">
+                                        <div class="wf-num">02</div>
+                                        <div class="wf-connector"></div>
+                                        <div class="wf-content">
+                                            <div class="wf-title"><i class='bx bx-cog'></i> Cấu Hình KPI</div>
+                                            <div class="wf-desc">Thiết lập ngày CP, Mini Camp và điều kiện đạt KPI</div>
+                                        </div>
+                                    </div>
+                                    <div class="wf-step">
+                                        <div class="wf-num">03</div>
+                                        <div class="wf-connector"></div>
+                                        <div class="wf-content">
+                                            <div class="wf-title"><i class='bx bx-calculator'></i> Chạy KPI Engine</div>
+                                            <div class="wf-desc">Hệ thống tự động đối chiếu và tính kết quả PASS / FAIL
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="wf-step">
+                                        <div class="wf-num">04</div>
+                                        <div class="wf-connector"></div>
+                                        <div class="wf-content">
+                                            <div class="wf-title"><i class='bx bx-search'></i> Kiểm Tra & Đối Soát</div>
+                                            <div class="wf-desc">Xem danh sách nghỉ bất thường, tạo khiếu nại với Vendor
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="wf-step">
+                                        <div class="wf-num">05</div>
+                                        <div class="wf-content">
+                                            <div class="wf-title"><i class='bx bx-export'></i> Xuất Báo Cáo</div>
+                                            <div class="wf-desc">Tải file Excel tổng hợp KPI và danh sách đối soát cuối
+                                                kỳ</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- System Info -->
+                            <div class="home-card home-sysinfo">
+                                <div class="hcard-header">
+                                    <i class='bx bx-info-circle'></i>
+                                    <span>Thông Tin Hệ Thống</span>
+                                </div>
+                                <div class="sysinfo-list">
+                                    <div class="si-item">
+                                        <span class="si-label">Kỳ đang xét</span>
+                                        <span class="si-value">Tháng {{ currentMonth }}/{{ currentYear }}</span>
+                                    </div>
+                                    <div class="si-item">
+                                        <span class="si-label">Tổng công yêu cầu</span>
+                                        <span class="si-value si-badge">{{ systemConfig.target_total_cong }} ngày</span>
+                                    </div>
+                                    <div class="si-item">
+                                        <span class="si-label">Ngày Mini Camp</span>
+                                        <span class="si-value si-badge">{{ systemConfig.target_mini }} ngày</span>
+                                    </div>
+                                    <div class="si-item">
+                                        <span class="si-label">Ngày Campaign</span>
+                                        <span class="si-value si-badge">{{ systemConfig.target_cp }} ngày</span>
+                                    </div>
+                                    <div class="si-item">
+                                        <span class="si-label">Lịch Làm Việc</span>
+                                        <span class="si-value" :style="scheduleData.data.length > 0 ? 'color: #34d399' : 'color: #f87171'">{{ scheduleData.data.length > 0 ? '✓ Đã tải (' + scheduleData.data.length + ' dòng)' : '✗ Chưa có dữ liệu' }}</span>
+                                    </div>
+                                </div>
+                                <div class="si-item">
+                                    <span class="si-label">Bảng Chấm Công</span>
+                                    <span class="si-value" :style="timesheetData.data.length > 0 ? 'color: #34d399' : 'color: #f87171'">{{ timesheetData.data.length > 0 ? '✓ Đã tải (' + timesheetData.data.length + ' bản ghi)' : '✗ Chưa có dữ liệu' }}</span>
+                                </div>
+                                <div class="si-item">
+                                    <span class="si-label">Lịch sử Upload</span>
+                                    <span class="si-value">{{ uploadHistory.length }} lần upload</span>
+                                </div>
+                            </div>
+                            <button class="home-config-btn" @click="currentTab = 'import'">
+                                <i class='bx bx-slider-alt'></i> Vào cấu hình hệ thống
+                            </button>
+                        </div>
+
+                    </div>
+                <!-- TAB: DASHBOARD -->
+                <div v-if="currentTab === 'dashboard'" class="tab-dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card pass">
+                            <h3><i class='bx bx-check-circle'></i> Tổng PASS</h3>
+                            <div class="value">{{ dashboardData.stats?.pass || 0 }}</div>
+                        </div>
+                        <div class="stat-card fail">
+                            <h3><i class='bx bx-x-circle'></i> Tổng FAIL</h3>
+                            <div class="value">{{ dashboardData.stats?.fail || 0 }}</div>
+                        </div>
+                        <div class="stat-card total">
+                            <h3><i class='bx bx-group'></i> Tổng Nhân Sự</h3>
+                            <div class="value">{{ dashboardData.stats?.total || 0 }}</div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-header" style="flex-wrap: wrap; gap: 0.75rem;">
+                            <h3>Danh sách nhân sự (Tháng {{ currentMonth }}/{{ currentYear }})</h3>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <select class="form-input"
+                                    style="width: auto; padding: 0.35rem 0.6rem; font-size: 0.82rem;"
+                                    :value="currentMonth + '-' + currentYear"
+                                    @change="changeMonth($event.target.value.split('-')[0], $event.target.value.split('-')[1])">
+                                    <option v-for="m in allMonths" :key="m.month+'-'+m.year"
+                                        :value="m.month + '-' + m.year"
+                                        :style="m.count > 0 ? 'font-weight: bold;' : 'color: #666;'">
+                                        {{ m.label }}
+                                    </option>
+                                </select>
+                                <button class="btn-primary" @click="runKPIEngine"><i class='bx bx-play-circle'></i>
+                                    Chạy lại KPI Engine</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>OPS ID</th>
+                                        <th>Họ Tên</th>
+                                        <th>Vendor</th>
+                                        <th>Loại CTV</th>
+                                        <th>Ngày Công</th>
+                                        <th>Công CP</th>
+                                        <th>Công Mini</th>
+                                        <th>Vi Phạm</th>
+                                        <th>Nghỉ KP</th>
+                                        <th>Kết Quả</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="emp in dashboardData.employees" :key="emp.ops_id">
+                                        <td>{{ emp.ops_id }}</td>
+                                        <td>{{ emp.name }}</td>
+                                        <td>{{ emp.vendor }}</td>
+                                        <td><span
+                                                :class="['badge', emp.loai_ctv === 'S-BPO' ? 'badge-warning' : 'badge-default']">{{
+                                                emp.loai_ctv || 'BPO' }}</span></td>
+                                        <td>{{ emp.kpi?.total_ngay_cong }}/{{ systemConfig.target_total_cong }}</td>
+                                        <td>{{ emp.kpi?.total_ngay_cong_cp }}/{{ systemConfig.target_cp }}</td>
+                                        <td>{{ emp.kpi?.total_ngay_cong_mini }}/{{ systemConfig.target_mini }}</td>
+                                        <td>{{ emp.kpi?.vi_pham }}</td>
+                                        <td :class="{'text-danger font-bold': emp.kpi?.no_permission_leave > 0}">{{
+                                            emp.kpi?.no_permission_leave }}</td>
+                                        <td>
+                                            <span
+                                                :class="['badge', emp.kpi?.result === 'PASS' ? 'badge-success' : 'badge-danger']">
+                                                {{ emp.kpi?.result }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: EMPLOYEES DETAIL -->
+                <div v-if="currentTab === 'employees'" class="tab-employees">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <input type="text" v-model="searchQuery" placeholder="Tìm tên hoặc OPS ID..."
+                                class="form-input" style="width: 250px;">
+                            <select v-model="filterType" class="form-input">
+                                <option value="">Tất cả Loại CTV</option>
+                                <option v-for="t in uniqueTypes" :key="t" :value="t">{{ t }}</option>
+                            </select>
+                            <select v-model="filterResult" class="form-input">
+                                <option value="">Tất cả Kết quả</option>
+                                <option value="PASS">PASS</option>
+                                <option value="FAIL">FAIL</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" @click="exportComplaints"
+                            style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i class='bx bx-export'></i> Xuất File Khiếu Nại Hàng Loạt
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;"><input type="checkbox"
+                                                @change="selectAllEmployees($event)"></th>
+                                        <th>OPS ID</th>
+                                        <th>Họ Tên</th>
+                                        <th>Vendor</th>
+                                        <th>Loại CTV</th>
+                                        <th>Total công</th>
+                                        <th>Mini</th>
+                                        <th>CP</th>
+                                        <th>Vi phạm</th>
+                                        <th>Nghỉ KP</th>
+                                        <th>Kết Quả</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="emp in filteredEmployees" :key="emp.ops_id">
+                                        <td><input type="checkbox" :value="emp.ops_id" v-model="selectedEmployees">
+                                        </td>
+                                        <td>{{ emp.ops_id }}</td>
+                                        <td>{{ emp.name }}</td>
+                                        <td>{{ emp.vendor }}</td>
+                                        <td><span
+                                                :class="['badge', emp.loai_ctv === 'S-BPO' ? 'badge-warning' : 'badge-default']">{{
+                                                emp.loai_ctv || 'BPO' }}</span></td>
+                                        <td>{{ emp.kpi?.total_ngay_cong }}/{{ systemConfig.target_total_cong }}</td>
+                                        <td>{{ emp.kpi?.total_ngay_cong_mini }}/{{ systemConfig.target_mini }}</td>
+                                        <td>{{ emp.kpi?.total_ngay_cong_cp }}/{{ systemConfig.target_cp }}</td>
+                                        <td>{{ emp.kpi?.vi_pham }}</td>
+                                        <td :class="{'text-danger font-bold': emp.kpi?.no_permission_leave > 0}">{{
+                                            emp.kpi?.no_permission_leave }}</td>
+                                        <td>
+                                            <span
+                                                :class="['badge', emp.kpi?.result === 'PASS' ? 'badge-success' : 'badge-danger']">
+                                                {{ emp.kpi?.result }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                                                <button v-if="emp.kpi?.result === 'FAIL'" class="btn-outline"
+                                                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem;"
+                                                    @click="openComplaintForm(emp)">
+                                                    Tạo khiếu nại
+                                                </button>
+                                                <button class="btn-danger"
+                                                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem;"
+                                                    @click="deleteEmployee(emp.ops_id)" title="Xóa nhân sự">
+                                                    <i class='bx bx-trash'></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="filteredEmployees.length === 0">
+                                        <td colspan="12" style="text-align: center; padding: 2rem;">Không tìm thấy
+                                            nhân viên nào phù hợp với bộ lọc.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: COMPLAINTS (OPS) -->
+                <div v-if="currentTab === 'complaints'" class="tab-complaints">
+                    <div class="card">
+                        <h3>Lịch sử đối soát (Ops gửi)</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>OPS ID</th>
+                                    <th>Ngày</th>
+                                    <th>Loại</th>
+                                    <th>Lý do</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="c in dashboardData.complaints" :key="c.id">
+                                    <td>#{{ c.id }}</td>
+                                    <td>{{ c.employee_id }}</td>
+                                    <td>{{ c.date }}</td>
+                                    <td><span class="badge badge-warning">{{ c.type }}</span></td>
+                                    <td>{{ c.reason }}</td>
+                                    <td>
+                                        <span
+                                            :class="['badge', c.status === 'approved' ? 'badge-success' : (c.status === 'rejected' ? 'badge-danger' : 'badge-default')]">
+                                            {{ c.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: VENDOR APPROVE -->
+                <div v-if="currentTab === 'vendor'" class="tab-vendor">
+                    <div class="card" v-for="c in pendingComplaints" :key="c.id">
+                        <div class="complaint-card">
+                            <div class="info">
+                                <h4>Khiếu nại #{{ c.id }} - {{ c.employee_id }}</h4>
+                                <p><strong>Ngày:</strong> {{ c.date }} | <strong>Loại:</strong> {{ c.type }}</p>
+                                <p><strong>Lý do Ops báo:</strong> {{ c.reason }}</p>
+                            </div>
+                            <div class="actions">
+                                <input type="text" v-model="c.tempNote" placeholder="Ghi chú của Vendor..."
+                                    class="form-input mb-2">
+                                <div class="btn-group">
+                                    <button class="btn-success"
+                                        @click="resolveComplaint(c.id, 'approved', c.tempNote)">Duyệt (Có
+                                        phép)</button>
+                                    <button class="btn-danger"
+                                        @click="resolveComplaint(c.id, 'rejected', c.tempNote)">Từ chối (Không
+                                        phép)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="pendingComplaints.length === 0" class="empty-state">
+                        <p>Không có khiếu nại nào chờ duyệt.</p>
+                    </div>
+                </div>
+
+                <!-- TAB: TIMESHEET -->
+                <div v-if="currentTab === 'timesheet'" class="tab-timesheet">
+                    <div class="card">
+                        <h3>Danh mục Chấm Công</h3>
+                        <div v-if="timesheetData.headers.length === 0" class="empty-state">
+                            <p>Chưa có dữ liệu Bảng Chấm Công. Vui lòng tải file lên trong mục Tải dữ liệu.</p>
+                        </div>
+                        <div v-else class="table-container" style="overflow-x: auto; max-width: 100%;">
+                            <table class="data-table" style="white-space: nowrap;">
+                                <thead>
+                                    <tr>
+                                        <th v-for="(header, index) in timesheetData.headers" :key="index">{{ header
+                                            }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(row, rowIndex) in timesheetData.data" :key="rowIndex">
+                                        <td v-for="(header, colIndex) in timesheetData.headers" :key="colIndex">
+                                            <span v-if="row[header] === 'OK'" class="badge badge-success">OK</span>
+                                            <span
+                                                v-else-if="header.toLowerCase().includes('claim') && row[header] !== 'OK'"
+                                                class="badge badge-danger">{{ row[header] }}</span>
+                                            <span v-else>{{ row[header] }}</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: SCHEDULE -->
+                <div v-if="currentTab === 'schedule'" class="tab-schedule">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                            <h3 style="margin: 0;">Danh mục Lịch Làm Việc</h3>
+                            <div v-if="scheduleData.headers.length > 0" style="display: flex; gap: 1rem; align-items: center;">
+                                <input type="text" v-model="scheduleSearchQuery" placeholder="Tìm tên hoặc Mã NV..."
+                                    class="form-input" style="width: 250px;">
+                                <select v-model="scheduleFilterVendor" class="form-input">
+                                    <option value="">Tất cả Vendor</option>
+                                    <option v-for="v in uniqueScheduleVendors" :key="v" :value="v">{{ v }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div v-if="scheduleData.headers.length === 0" class="empty-state">
+                            <p>Chưa có dữ liệu Lịch làm việc. Vui lòng tải file lên trong mục Tải dữ liệu.</p>
+                        </div>
+                        <div v-else>
+                            <!-- Detailed Schedule Panel (Shown when exactly 1 employee is filtered) -->
+                            <div v-if="filteredSchedule.length === 1 && scheduleSearchQuery" class="card" style="margin-top: 0; margin-bottom: 1.5rem; border-color: rgba(139, 92, 246, 0.4); box-shadow: 0 0 15px rgba(139, 92, 246, 0.1);">
+                                <div class="emp-header" style="border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                                    <h4 style="color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class='bx bx-calendar-star'></i>
+                                        Chi tiết Lịch làm việc - {{ filteredSchedule[0]['Công thức Họ và tên'] || filteredSchedule[0]['Họ và tên'] }} ({{ filteredSchedule[0]['Mã số nhân viên'] || filteredSchedule[0]['Mã nhân viên'] }})
+                                    </h4>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                                    <!-- Off Days -->
+                                    <div>
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                                            <strong style="color: var(--danger);"><i class='bx bx-calendar-x'></i> CÁC NGÀY OFF TRONG LỊCH</strong>
+                                            <span class="badge badge-danger">{{ filteredSchedule[0]._totalOff }} ngày</span>
+                                        </div>
+                                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem;">
+                                            <div v-if="filteredSchedule[0]._offDaysList.length > 0" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                                <span v-for="d in filteredSchedule[0]._offDaysList" :key="'o'+d" class="badge badge-danger" style="font-size: 0.85rem;">
+                                                    Ngày {{ d }}
+                                                </span>
+                                            </div>
+                                            <div v-else class="text-muted" style="font-size: 0.9rem;">Không có ngày OFF nào</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Work Days -->
+                                    <div>
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                                            <strong style="color: var(--secondary);"><i class='bx bx-calendar-check'></i> CÁC NGÀY ĐI LÀM TRONG LỊCH</strong>
+                                            <span class="badge badge-success">{{ filteredSchedule[0]._totalWork }} ngày</span>
+                                        </div>
+                                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem;">
+                                            <div v-if="filteredSchedule[0]._workDaysList.length > 0" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                                <span v-for="wd in filteredSchedule[0]._workDaysList" :key="'w'+wd.day" class="badge badge-success" style="font-size: 0.85rem;" :title="'Ca làm: ' + wd.shift">
+                                                    Ngày {{ wd.day }}
+                                                </span>
+                                            </div>
+                                            <div v-else class="text-muted" style="font-size: 0.9rem;">Không có ngày làm việc nào</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-container" style="overflow-x: auto; max-width: 100%;">
+                            <table class="data-table" style="white-space: nowrap;">
+                                <thead>
+                                    <tr>
+                                        <th v-for="(header, index) in scheduleData.headers" :key="index">{{ header }}</th>
+                                        <th style="color: #34d399;">Tổng đi làm</th>
+                                        <th style="color: #f87171;">Tổng OFF</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(row, rowIndex) in filteredSchedule" :key="rowIndex">
+                                        <td v-for="(header, colIndex) in scheduleData.headers" :key="colIndex">
+                                            <span
+                                                :class="{'badge badge-success': row[header] === 'S3' || row[header] === 'S10' || row[header] === 'S19', 'badge badge-default': row[header] === 'OFF', 'badge badge-warning': row[header] !== 'S3' && row[header] !== 'S10' && row[header] !== 'S19' && row[header] !== 'OFF' && row[header] !== '' && header !== '__EMPTY' && !header.includes('Công thức') && !header.includes('Mã số')}">
+                                                {{ row[header] }}
+                                            </span>
+                                        </td>
+                                        <td class="text-success font-bold text-center">{{ row._totalWork }}</td>
+                                        <td class="text-danger font-bold text-center">{{ row._totalOff }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: REPORT -->
+                <div v-if="currentTab === 'report'" class="tab-report">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+                        <h2 style="margin: 0;">Báo Cáo Tổng Hợp KPI (Tháng {{ currentMonth }}/{{ currentYear }})
+                        </h2>
+                        <select class="form-input" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;"
+                            :value="currentMonth + '-' + currentYear"
+                            @change="changeMonth($event.target.value.split('-')[0], $event.target.value.split('-')[1])">
+                            <option v-for="m in allMonths" :key="'r'+m.month+'-'+m.year" :value="m.month + '-' + m.year"
+                                :style="m.count > 0 ? 'font-weight: bold;' : 'color: #666;'">
+                                {{ m.label }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="stats-grid mb-4">
+                        <div class="stat-card">
+                            <div class="stat-title">Tổng Nhân Sự</div>
+                            <div class="stat-value">{{ dashboardData.stats.total }}</div>
+                            <div class="stat-desc">Được đối chiếu từ Lịch Làm Việc</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">Tỷ lệ PASS</div>
+                            <div class="stat-value text-success">
+                                {{ dashboardData.stats.total ? Math.round((dashboardData.stats.pass /
+                                dashboardData.stats.total) * 100) : 0 }}%
+                            </div>
+                            <div class="stat-desc">{{ dashboardData.stats.pass }} nhân sự đạt KPI</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">Tỷ lệ FAIL</div>
+                            <div class="stat-value text-danger">
+                                {{ dashboardData.stats.total ? Math.round((dashboardData.stats.fail /
+                                dashboardData.stats.total) * 100) : 0 }}%
+                            </div>
+                            <div class="stat-desc">{{ dashboardData.stats.fail }} nhân sự không đạt</div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <h3>Chi Tiết Theo Phân Loại CTV</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Loại CTV</th>
+                                        <th>Số Lượng</th>
+                                        <th>Số người PASS</th>
+                                        <th>Số người FAIL</th>
+                                        <th>Tỷ lệ Đạt</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="type in uniqueTypes" :key="type">
+                                        <td><span class="badge badge-default">{{ type }}</span></td>
+                                        <td>{{ dashboardData.employees.filter(e => (e.loai_ctv || 'BPO') ===
+                                            type).length }}</td>
+                                        <td class="text-success font-bold">{{ dashboardData.employees.filter(e =>
+                                            (e.loai_ctv || 'BPO') === type && e.kpi?.result === 'PASS').length }}
+                                        </td>
+                                        <td class="text-danger font-bold">{{ dashboardData.employees.filter(e =>
+                                            (e.loai_ctv || 'BPO') === type && e.kpi?.result === 'FAIL').length }}
+                                        </td>
+                                        <td>
+                                            {{ Math.round((dashboardData.employees.filter(e => (e.loai_ctv || 'BPO')
+                                            === type && e.kpi?.result === 'PASS').length /
+                                            (dashboardData.employees.filter(e => (e.loai_ctv || 'BPO') ===
+                                            type).length || 1)) * 100) }}%
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Top Nhân Sự Vắng Mặt Không Phép Cao Nhất</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>OPS ID</th>
+                                        <th>Họ Tên</th>
+                                        <th>Vendor</th>
+                                        <th>Số ngày NPL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="emp in [...dashboardData.employees].sort((a,b) => (b.kpi?.no_permission_leave || 0) - (a.kpi?.no_permission_leave || 0)).slice(0, 5)"
+                                        :key="emp.ops_id">
+                                        <td v-if="emp.kpi?.no_permission_leave > 0">{{ emp.ops_id }}</td>
+                                        <td v-if="emp.kpi?.no_permission_leave > 0">{{ emp.name }}</td>
+                                        <td v-if="emp.kpi?.no_permission_leave > 0">{{ emp.vendor }}</td>
+                                        <td v-if="emp.kpi?.no_permission_leave > 0" class="text-danger font-bold">{{
+                                            emp.kpi.no_permission_leave }}</td>
+                                    </tr>
+                                    <tr
+                                        v-if="dashboardData.employees.filter(e => e.kpi?.no_permission_leave > 0).length === 0">
+                                        <td colspan="4" class="text-center" style="color: #8892b0; padding: 2rem;">
+                                            Không có nhân sự nào nghỉ không phép (NPL). Tuyệt vời!</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: LEAVE -->
+                <div v-if="currentTab === 'leave'" class="tab-leave">
+                    <div class="card">
+                        <h3>Danh Mục Xin Nghỉ Phép</h3>
+                        <div v-if="leaveData.headers.length === 0" class="empty-state">
+                            <p>Chưa có dữ liệu nghỉ phép. Vui lòng tải file lên trong mục Automation Import.</p>
+                        </div>
+                        <div v-else class="table-container" style="overflow-x: auto; max-width: 100%;">
+                            <table class="data-table" style="white-space: nowrap;">
+                                <thead>
+                                    <tr>
+                                        <th v-for="(header, index) in leaveData.headers" :key="index">{{ header }}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(row, rowIndex) in leaveData.data" :key="rowIndex">
+                                        <td v-for="(header, colIndex) in leaveData.headers" :key="colIndex">
+                                            {{ row[header] }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: ABSENCE CHECK -->
+                <div v-if="currentTab === 'absence'" class="tab-absence">
+                    <!-- Header -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                        <h2 style="font-size: 1.2rem; margin: 0;">Kiểm Tra Ngày Nghỉ
+                            <span v-if="absenceRefMonth"
+                                style="font-size: 0.85rem; font-weight: 400; color: var(--text-muted);">(Tháng {{
+                                absenceRefMonth }}/{{ absenceRefYear }})</span>
+                        </h2>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <select class="form-input" style="width: auto; padding: 0.35rem 0.6rem; font-size: 0.82rem;"
+                                :value="currentMonth + '-' + currentYear"
+                                @change="changeMonth($event.target.value.split('-')[0], $event.target.value.split('-')[1])">
+                                <option v-for="m in allMonths" :key="'a'+m.month+'-'+m.year"
+                                    :value="m.month + '-' + m.year"
+                                    :style="m.count > 0 ? 'font-weight: bold;' : 'color: #666;'">
+                                    {{ m.label }}
+                                </option>
+                            </select>
+                            <span v-if="absenceData.length" class="badge badge-danger" style="font-size: 0.8rem;">{{
+                                absenceData.length }} nhân viên</span>
+                            <button class="btn-primary" @click="exportAbsence" v-if="absenceData.length > 0"
+                                style="padding: 0.4rem 0.9rem; font-size: 0.82rem;">
+                                <i class='bx bx-export'></i> Xuất Báo Cáo
+                            </button>
+                            <button class="btn-outline" @click="fetchAbsenceData"
+                                style="padding: 0.4rem 0.9rem; font-size: 0.82rem;"><i class='bx bx-refresh'></i>
+                                Làm mới</button>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div v-if="absenceData.length === 0" class="card">
+                        <div class="empty-state">
+                            <i class='bx bx-check-circle'
+                                style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                            <p>Tất cả nhân sự đều đúng giờ! Không phát hiện ngày nghỉ ngoài lịch.</p>
+                        </div>
+                    </div>
+
+                    <!-- Split Panel Layout -->
+                    <div v-else class="absence-split" id="absenceSplit">
+                        <!-- LEFT PANEL: Employee List -->
+                        <div class="absence-left" id="absenceLeft">
+                            <div class="absence-panel-header">
+                                <span><i class='bx bx-list-ul'></i> Danh sách ({{ absenceData.length }})</span>
+                            </div>
+                            <div class="absence-list-scroll">
+                                <div v-for="(record, idx) in absenceData" :key="idx" class="absence-item"
+                                    :class="{ active: selectedAbsenceIdx === idx }" @click="selectedAbsenceIdx = idx">
+                                    <div class="absence-item-top">
+                                        <span class="absence-item-idx">{{ idx + 1 }}</span>
+                                        <strong class="absence-item-id">{{ record.ops_id }}</strong>
+                                        <span class="badge badge-danger absence-item-count">{{ record.total_absent
+                                            }}</span>
+                                    </div>
+                                    <div class="absence-item-name">{{ record.name }}</div>
+                                    <div class="absence-item-meta">
+                                        <span>{{ record.vendor }}</span>
+                                        <span class="badge badge-default"
+                                            style="font-size: 0.65rem; padding: 0.15rem 0.4rem;">{{ record.loai_ctv
+                                            || 'BPO' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RESIZER / DIVIDER -->
+                        <div class="absence-resizer" id="absenceResizer" @mousedown="startAbsenceResize($event)">
+                            <div class="resizer-handle"></div>
+                        </div>
+
+                        <!-- RIGHT PANEL: Details -->
+                        <div class="absence-right" id="absenceRight">
+                            <div v-if="selectedAbsenceIdx === null || !absenceData[selectedAbsenceIdx]"
+                                class="absence-detail-empty">
+                                <i class='bx bx-pointer'
+                                    style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 0.75rem;"></i>
+                                <p style="color: var(--text-muted);">Chọn nhân viên bên trái để xem chi tiết</p>
+                            </div>
+                            <div v-else class="absence-detail">
+                                <div class="absence-panel-header" style="justify-content: space-between;">
+                                    <span><i class='bx bx-detail'></i> Chi tiết ngày nghỉ</span>
+                                    <button class="btn-primary" style="padding: 0.3rem 0.7rem; font-size: 0.78rem;"
+                                        @click="updateAbsence(absenceData[selectedAbsenceIdx])">
+                                        <i class='bx bx-save'></i> Lưu thay đổi
+                                    </button>
+                                </div>
+                                <div class="absence-detail-body">
+                                    <!-- Info Row -->
+                                    <div class="absence-info-grid">
+                                        <div class="absence-info-item">
+                                            <label>Mã Ops</label>
+                                            <span>{{ absenceData[selectedAbsenceIdx].ops_id }}</span>
+                                        </div>
+                                        <div class="absence-info-item">
+                                            <label>Họ Tên</label>
+                                            <span>{{ absenceData[selectedAbsenceIdx].name }}</span>
+                                        </div>
+                                        <div class="absence-info-item">
+                                            <label>Vendor</label>
+                                            <span>{{ absenceData[selectedAbsenceIdx].vendor }}</span>
+                                        </div>
+                                        <div class="absence-info-item">
+                                            <label>Loại CTV</label>
+                                            <span>{{ absenceData[selectedAbsenceIdx].loai_ctv || 'BPO' }}</span>
+                                        </div>
+                                        <div class="absence-info-item">
+                                            <label>Tổng ngày nghỉ</label>
+                                            <span class="badge badge-danger"
+                                                style="font-size: 0.85rem; padding: 0.25rem 0.6rem;">{{
+                                                absenceData[selectedAbsenceIdx].total_absent }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Dates Section -->
+                                    <div class="absence-section">
+                                        <label class="absence-section-label"><i class='bx bx-calendar-x'></i> Ngày
+                                            nghỉ ngoài lịch
+                                            <span v-if="absenceRefMonth"
+                                                style="font-weight: 400; color: var(--text-muted); margin-left: 0.5rem;">(Tháng
+                                                {{ absenceRefMonth }}/{{ absenceRefYear }})</span>
+                                        </label>
+                                        <div class="absence-dates-box">
+                                            {{ absenceData[selectedAbsenceIdx].dates_display }}
+                                        </div>
+                                        <!-- Calendar Toggle Bar -->
+                                        <div class="absence-calendar-toggle"
+                                            @click="showAbsenceCalendar = !showAbsenceCalendar; selectedCalDay = null;">
+                                            <i class='bx'
+                                                :class="showAbsenceCalendar ? 'bx-chevron-up' : 'bx-chevron-down'"></i>
+                                            <span>{{ showAbsenceCalendar ? 'Ẩn lịch chi tiết' : 'Mở lịch xem chi tiết từng ngày' }}</span>
+                                            <i class='bx bx-search-alt'
+                                                style="margin-left: auto; color: var(--primary);"></i>
+                                        </div>
+                                        <!-- Calendar Grid (collapsible) -->
+                                        <div v-if="showAbsenceCalendar" class="absence-calendar-grid">
+                                            <div class="absence-cal-header">
+                                                <span>Bấm vào ngày để xem / gán lý do nghỉ</span>
+                                            </div>
+                                            <div class="absence-cal-days">
+                                                <div v-for="d in absenceDaysInMonth" :key="d" class="absence-cal-day"
+                                                    :class="{ 'is-off': isAbsenceDay(d), 'is-selected': selectedCalDay === d, 'has-reason': getDayReason(d) }"
+                                                    @click="selectCalDay(d)">
+                                                    {{ d }}
+                                                    <span v-if="getDayReason(d)" class="day-reason-dot"
+                                                        :title="getDayReason(d)"></span>
+                                                </div>
+                                            </div>
+                                            <div class="absence-cal-legend">
+                                                <span><span class="legend-dot off"></span> Ngày OFF</span>
+                                                <span><span class="legend-dot selected"></span> Đang chọn</span>
+                                                <span><span class="legend-dot has-reason-legend"></span> Đã gán lý
+                                                    do</span>
+                                            </div>
+
+                                            <!-- Day Detail Bar (shows when a day is selected) -->
+                                            <div v-if="selectedCalDay !== null && isAbsenceDay(selectedCalDay)"
+                                                class="absence-day-detail">
+                                                <div class="day-detail-header">
+                                                    <div class="day-detail-title">
+                                                        <i class='bx bx-calendar-event'></i>
+                                                        <span>Ngày <strong>{{ selectedCalDay }}</strong></span>
+                                                        <span class="badge badge-danger"
+                                                            style="font-size: 0.7rem; padding: 0.1rem 0.4rem;">OFF</span>
+                                                    </div>
+                                                    <button class="btn-remove-day"
+                                                        @click="removeDayFromList(selectedCalDay)"
+                                                        title="Xóa ngày này khỏi danh sách OFF">
+                                                        <i class='bx bx-trash'></i> Xóa ngày
+                                                    </button>
+                                                </div>
+                                                <div class="day-detail-body">
+                                                    <label class="day-detail-label">Lý do nghỉ ngày {{
+                                                        selectedCalDay }}:</label>
+                                                    <select :value="getDayReason(selectedCalDay)"
+                                                        @change="setDayReason($event.target.value)"
+                                                        class="form-input day-reason-select">
+                                                        <option value="">-- Chưa xác định --</option>
+                                                        <option value="Không phép">Không phép (NPL)</option>
+                                                        <option value="Có phép">Có phép (AL)</option>
+                                                        <option value="Nghỉ bệnh">Nghỉ bệnh</option>
+                                                        <option value="Việc riêng">Việc riêng</option>
+                                                        <option value="Hủy ca">Hủy ca</option>
+                                                        <option value="Nghỉ lễ">Nghỉ lễ</option>
+                                                        <option value="Đã đối soát">Đã đối soát - Hợp lệ</option>
+                                                        <option value="Khác">Khác</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Status -->
+                                    <div class="absence-section">
+                                        <label class="absence-section-label"><i class='bx bx-flag'></i> Trạng thái
+                                            nghỉ</label>
+                                        <select v-model="absenceData[selectedAbsenceIdx].leave_status"
+                                            class="form-input" style="margin-bottom: 0;">
+                                            <option value="Không phép">Không phép (NPL)</option>
+                                            <option value="Có phép">Có phép (AL)</option>
+                                            <option value="Bệnh">Nghỉ bệnh</option>
+                                            <option value="Việc riêng">Việc riêng</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Note -->
+                                    <div class="absence-section">
+                                        <label class="absence-section-label"><i class='bx bx-message-detail'></i>
+                                            Vendor phản hồi / Ghi chú</label>
+                                        <textarea v-model="absenceData[selectedAbsenceIdx].note" class="form-input"
+                                            rows="3" style="margin-bottom: 0; resize: vertical; min-height: 70px;"
+                                            placeholder="VD: Công đã được đối soát và hợp lệ. Không ảnh hưởng KPI..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: IMPORT -->
+                <div v-if="currentTab === 'import'" class="tab-import">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                        <div>
+                            <h3 class="mb-2">Import & Cấu hình Hệ thống</h3>
+                            <p class="text-muted">Quản lý dữ liệu đầu vào và các thiết lập KPI tạm thời.</p>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4" style="padding: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem;"><i class='bx bx-slider-alt'></i> Cập Nhật Điều Kiện KPI
+                            (Tạm thời cho tháng)</h3>
+                        <div style="display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap;">
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <div>
+                                    <label
+                                        style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Tổng
+                                        công (yêu cầu):</label>
+                                    <input type="number" v-model="systemConfig.target_total_cong" class="form-input"
+                                        style="width: 150px;">
+                                </div>
+                                <div>
+                                    <label
+                                        style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Số
+                                        ngày CP (yêu cầu):</label>
+                                    <input type="number" v-model="systemConfig.target_cp" class="form-input"
+                                        style="width: 150px;">
+                                </div>
+                                <div>
+                                    <label
+                                        style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Số
+                                        ngày Mini (yêu cầu):</label>
+                                    <input type="number" v-model="systemConfig.target_mini" class="form-input"
+                                        style="width: 150px;">
+                                </div>
+                                <div style="margin-top: auto;">
+                                    <button class="btn-primary" @click="updateSystemConfig">
+                                        <i class='bx bx-save'></i> Lưu cấu hình & Tính lại KPI
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Bảng chọn ngày CP -->
+                            <div style="margin-left: 1rem;">
+                                <label
+                                    style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Chọn
+                                    ngày diễn ra Campaign (CP):</label>
+                                <div class="calendar-picker">
+                                    <div v-for="day in 31" :key="'cp'+day" class="cal-day"
+                                        :class="{ 'selected-cp': systemConfig.cpDays.includes(day) }"
+                                        @click="toggleDay('cpDays', day)">
+                                        {{ day }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bảng chọn ngày Mini -->
+                            <div style="margin-left: 1rem;">
+                                <label
+                                    style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Chọn
+                                    ngày diễn ra Mini Camp:</label>
+                                <div class="calendar-picker">
+                                    <div v-for="day in 31" :key="'mini'+day" class="cal-day"
+                                        :class="{ 'selected-mini': systemConfig.miniDays.includes(day) }"
+                                        @click="toggleDay('miniDays', day)">
+                                        {{ day }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="card" style="margin-top: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3><i class='bx bx-time'></i> Upload Timesheet</h3>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button class="btn-outline" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;"
+                                        @click="$refs.timesheetTpl.click()">
+                                        <i class='bx bx-upload'></i> Cập nhật Mẫu
+                                    </button>
+                                    <input type="file" ref="timesheetTpl" style="display: none;"
+                                        @change="uploadTemplate('timesheet', $event)" accept=".xlsx, .xls">
+                                    <a href="http://localhost:3000/api/download-template/timesheet" target="_blank"
+                                        class="btn-outline"
+                                        style="font-size: 0.8rem; text-decoration: none; padding: 0.4rem 0.8rem;">
+                                        <i class='bx bx-download'></i> Tải File Mẫu
+                                    </a>
+                                </div>
+                            </div>
+                            <p class="text-muted mt-2">Dữ liệu chấm công thực tế của nhân sự (.xlsx)</p>
+                            <div class="upload-zone mt-4" @click="$refs.timesheetInput.click()">
+                                <i class='bx bx-cloud-upload icon'></i>
+                                <h4>Kéo thả hoặc click để tải lên</h4>
+                                <input type="file" ref="timesheetInput" style="display: none" @change="uploadTimesheet"
+                                    accept=".xlsx, .xls, .csv">
+                            </div>
+                        </div>
+
+                        <div class="card" style="margin-top: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3><i class='bx bx-calendar'></i> Upload Lịch làm việc</h3>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button class="btn-outline" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;"
+                                        @click="$refs.scheduleTpl.click()">
+                                        <i class='bx bx-upload'></i> Cập nhật Mẫu
+                                    </button>
+                                    <input type="file" ref="scheduleTpl" style="display: none;"
+                                        @change="uploadTemplate('schedule', $event)" accept=".xlsx, .xls">
+                                    <a href="http://localhost:3000/api/download-template/schedule" target="_blank"
+                                        class="btn-outline"
+                                        style="font-size: 0.8rem; text-decoration: none; padding: 0.4rem 0.8rem;">
+                                        <i class='bx bx-download'></i> Tải File Mẫu
+                                    </a>
+                                </div>
+                            </div>
+                            <p class="text-muted mt-2">Lịch làm việc dự kiến (Ca làm, OFF, Phép) (.xlsx)</p>
+                            <div class="upload-zone mt-4" @click="$refs.scheduleInput.click()">
+                                <i class='bx bx-calendar-plus icon'></i>
+                                <h4>Kéo thả hoặc click để tải lên</h4>
+                                <input type="file" ref="scheduleInput" style="display: none" @change="uploadSchedule"
+                                    accept=".xlsx, .xls, .csv">
+                            </div>
+                        </div>
+
+                        <div class="card" style="margin-top: 0;">
+                            <h3><i class='bx bx-calendar-x'></i> Upload Xin Nghỉ Phép</h3>
+                            <p class="text-muted mt-2">Danh sách xin nghỉ phép của nhân sự (.xlsx)</p>
+                            <div class="upload-zone mt-4" @click="$refs.leaveInput.click()">
+                                <i class='bx bx-calendar-x icon'></i>
+                                <h4>Kéo thả hoặc click để tải lên</h4>
+                                <input type="file" ref="leaveInput" style="display: none" @change="uploadLeave"
+                                    accept=".xlsx, .xls, .csv">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload History -->
+                    <div class="card mt-4" v-if="uploadHistory.length > 0" style="padding: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem;"><i class='bx bx-history'></i> Lịch Sử Upload Gần Đây</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Loại</th>
+                                        <th>Tên File</th>
+                                        <th>Tháng</th>
+                                        <th>Số Bản Ghi</th>
+                                        <th>Thời Gian</th>
+                                        <th>Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="h in uploadHistory" :key="h.id">
+                                        <td>
+                                            <span
+                                                :class="['badge', h.type === 'timesheet' ? 'badge-success' : h.type === 'schedule' ? 'badge-warning' : 'badge-default']">
+                                                {{ formatHistoryType(h.type) }}
+                                            </span>
+                                        </td>
+                                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                                            :title="h.originalName">{{ h.originalName }}</td>
+                                        <td>{{ h.month && h.year ? 'T' + h.month + '/' + h.year : '—' }}</td>
+                                        <td>{{ h.recordCount }}</td>
+                                        <td style="font-size: 0.8rem; color: var(--text-muted);">{{
+                                            formatDate(h.timestamp) }}</td>
+                                        <td>
+                                            <button class="btn-danger"
+                                                style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"
+                                                @click="deleteHistory(h.id)" title="Xóa">
+                                                <i class='bx bx-trash'></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: CHECK REPORT -->
+                <div v-if="currentTab === 'checkReport'" class="tab-check-report">
+
+                    <!-- Row 1: Upload + KPI Config (collapsible) -->
+                    <div class="cr-top-row">
+                        <!-- Upload Zone -->
+                        <div class="card cr-upload-card">
+                            <div class="cr-toggle-header" @click="crShowUpload = !crShowUpload">
+                                <h3 style="margin:0;display:flex;align-items:center;gap:0.5rem;"><i class='bx bx-cloud-upload'></i> Upload Timesheet</h3>
+                                <i class='bx' :class="crShowUpload ? 'bx-chevron-up' : 'bx-chevron-down'" style="font-size:1.2rem;color:var(--text-muted);"></i>
+                            </div>
+                            <div v-if="crShowUpload" class="cr-toggle-body">
+                                <div class="upload-zone" @click="!crIsUploading && $refs.crTimesheetInput.click()" style="padding:1.2rem; position:relative;" :style="crIsUploading ? 'cursor:not-allowed; opacity:0.8;' : ''">
+                                    <div v-if="crIsUploading" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.8); display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:1rem; z-index:10; backdrop-filter:blur(4px);">
+                                        <i class='bx bx-loader-alt bx-spin' style="font-size:3rem; color:var(--primary); margin-bottom:1rem;"></i>
+                                        <h4 style="color:white; margin:0;">{{ crUploadStatus }}</h4>
+                                    </div>
+                                    <i class='bx bx-cloud-upload icon'></i>
+                                    <h4>Kéo thả hoặc click để tải lên (.xlsx)</h4>
+                                    <input type="file" ref="crTimesheetInput" style="display:none" @change="uploadCrTimesheet" accept=".xlsx,.xls">
+                                </div>
+                                <div v-if="uploadHistory.filter(h => h.type === 'timesheet').length > 0" style="margin-top:0.75rem;">
+                                    <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.4rem;">Lịch sử gần đây:</div>
+                                    <div v-for="h in uploadHistory.filter(h => h.type === 'timesheet').slice(0,3)" :key="'crh'+h.id" style="display:flex;justify-content:space-between;font-size:0.75rem;padding:0.25rem 0;border-bottom:1px solid var(--border);">
+                                        <span style="color:var(--text);">{{ h.originalName }}</span>
+                                        <span style="color:var(--text-muted);">{{ h.recordCount }} bản ghi</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KPI Config (Editable) -->
+                        <div class="card cr-kpi-card">
+                            <div class="cr-toggle-header" @click="crShowKpiConfig = !crShowKpiConfig">
+                                <h3 style="margin:0;display:flex;align-items:center;gap:0.5rem;"><i class='bx bx-slider-alt'></i> Điều Kiện KPI</h3>
+                                <i class='bx' :class="crShowKpiConfig ? 'bx-chevron-up' : 'bx-chevron-down'" style="font-size:1.2rem;color:var(--text-muted);"></i>
+                            </div>
+                            <div v-if="crShowKpiConfig" class="cr-toggle-body">
+                                <div class="cr-kpi-inputs">
+                                    <div class="cr-kpi-input-group">
+                                        <label>Tổng công:</label>
+                                        <input type="number" v-model="systemConfig.target_total_cong" class="form-input" style="width:80px;">
+                                    </div>
+                                    <div class="cr-kpi-input-group">
+                                        <label>Ngày CP:</label>
+                                        <input type="number" v-model="systemConfig.target_cp" class="form-input" style="width:80px;">
+                                    </div>
+                                    <div class="cr-kpi-input-group">
+                                        <label>Ngày Mini:</label>
+                                        <input type="number" v-model="systemConfig.target_mini" class="form-input" style="width:80px;">
+                                    </div>
+                                    <button class="btn-primary" @click="updateSystemConfig" style="padding:0.4rem 0.8rem;font-size:0.82rem;">
+                                        <i class='bx bx-save'></i> Lưu & Tính lại
+                                    </button>
+                                </div>
+                                <div style="display:flex;gap:1.5rem;margin-top:1rem;flex-wrap:wrap;">
+                                    <div>
+                                        <label style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.4rem;display:block;">Ngày Campaign (CP):</label>
+                                        <div class="calendar-picker">
+                                            <div v-for="day in 31" :key="'crcp'+day" class="cal-day" :class="{'selected-cp': systemConfig.cpDays.includes(day)}" @click="toggleDay('cpDays', day)">{{ day }}</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.4rem;display:block;">Ngày Mini Camp:</label>
+                                        <div class="calendar-picker">
+                                            <div v-for="day in 31" :key="'crmini'+day" class="cal-day" :class="{'selected-mini': systemConfig.miniDays.includes(day)}" @click="toggleDay('miniDays', day)">{{ day }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Bar -->
+                    <div class="cr-filter-bar">
+                        <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                            <input type="text" v-model="crSearch" placeholder="Tìm tên hoặc OPS ID..." class="form-input" style="width:220px;">
+                            <select v-model="crVendorFilter" class="form-input" style="width:auto;">
+                                <option value="">Tất cả Vendor</option>
+                                <option v-for="v in crUniqueVendors" :key="v" :value="v">{{ v }}</option>
+                            </select>
+                            <select class="form-input" style="width:auto;" :value="currentMonth + '-' + currentYear" @change="changeMonth($event.target.value.split('-')[0], $event.target.value.split('-')[1])">
+                                <option v-for="m in allMonths" :key="'cr'+m.month+'-'+m.year" :value="m.month + '-' + m.year" :style="m.count > 0 ? 'font-weight:bold;' : 'color:#666;'">{{ m.label }}</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;align-items:center;">
+                            <span class="badge badge-default">{{ crFilteredEmployees.length }} nhân viên</span>
+                            <button class="btn-primary" @click="exportCheckReport" style="padding:0.4rem 0.9rem;font-size:0.82rem;">
+                                <i class='bx bx-export'></i> Xuất Báo Cáo
+                            </button>
+                            <button class="btn-outline" @click="runKPIEngine(false)" style="padding:0.4rem 0.9rem;font-size:0.82rem; border-color:var(--primary); color:var(--primary);">
+                                <i class='bx bx-play-circle'></i> Chạy KPI
+                            </button>
+                            <button class="btn-outline" @click="fetchDashboardData" style="padding:0.4rem 0.9rem;font-size:0.82rem;">
+                                <i class='bx bx-refresh'></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Split Layout -->
+                    <div class="cr-main-layout">
+                        <!-- Left: Employee List -->
+                        <div class="cr-emp-list">
+                            <div class="cr-list-header"><i class='bx bx-list-ul'></i> Danh sách ({{ crFilteredEmployees.length }})</div>
+                            <div class="cr-list-scroll">
+                                <div v-for="(emp, idx) in crFilteredEmployees" :key="emp.ops_id" class="cr-emp-item" :class="{active: crSelectedEmpId === emp.ops_id}" @click="selectCrEmployee(emp.ops_id)">
+                                    <div class="cr-emp-item-top">
+                                        <span class="cr-emp-idx">{{ idx + 1 }}</span>
+                                        <strong>{{ emp.ops_id }}</strong>
+                                        <span :class="['badge', emp.kpi?.result === 'PASS' ? 'badge-success' : 'badge-danger']" style="margin-left:auto;font-size:0.65rem;">{{ emp.kpi?.result || '—' }}</span>
+                                    </div>
+                                    <div class="cr-emp-name">{{ emp.name }}</div>
+                                    <div class="cr-emp-meta">
+                                        <span>{{ emp.vendor }}</span>
+                                        <span>{{ emp.kpi?.total_ngay_cong || 0 }}/{{ systemConfig.target_total_cong }}</span>
+                                    </div>
+                                </div>
+                                <div v-if="crFilteredEmployees.length === 0" style="padding:2rem;text-align:center;color:var(--text-muted);">Không tìm thấy nhân viên nào.</div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Detail View -->
+                        <div class="cr-detail">
+                            <div v-if="!crSelectedEmp" class="cr-detail-empty">
+                                <i class='bx bx-pointer' style="font-size:2.5rem;color:var(--text-muted);margin-bottom:0.75rem;"></i>
+                                <p style="color:var(--text-muted);">Chọn nhân viên bên trái để xem chi tiết</p>
+                            </div>
+
+                            <div v-else>
+                                <!-- Employee Info Header -->
+                                <div class="cr-info-header">
+                                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                                        <i class='bx bx-user-circle' style="font-size:1.5rem;color:var(--primary);"></i>
+                                        <div>
+                                            <h3 style="margin:0;">{{ crSelectedEmp.name }}</h3>
+                                            <span style="font-size:0.8rem;color:var(--text-muted);">{{ crSelectedEmp.ops_id }} · {{ crSelectedEmp.vendor }} · {{ crSelectedEmp.loai_ctv || 'BPO' }}</span>
+                                        </div>
+                                    </div>
+                                    <span :class="['badge', crSelectedEmp.kpi?.result === 'PASS' ? 'badge-success' : 'badge-danger']" style="font-size:0.85rem;padding:0.3rem 0.8rem;">{{ crSelectedEmp.kpi?.result || 'N/A' }}</span>
+                                </div>
+
+                                <!-- KPI Progress + Days Grid -->
+                                <div class="cr-progress-days-row">
+                                    <!-- KPI Progress Bars -->
+                                    <div class="cr-progress-panel" v-if="crKpiProgress">
+                                        <h4 style="margin:0 0 0.75rem 0;font-size:0.85rem;color:var(--text-muted);"><i class='bx bx-bar-chart-alt-2'></i> Tiến Độ KPI</h4>
+                                        <div class="cr-progress-item">
+                                            <div class="cr-progress-label"><span>Tổng công</span><span :class="crKpiProgress.total.current >= crKpiProgress.total.target ? 'text-success' : 'text-danger'">{{ crKpiProgress.total.current }}/{{ crKpiProgress.total.target }}</span></div>
+                                            <div class="cr-progress-bar"><div class="cr-progress-fill" :style="{width: crKpiProgress.total.pct+'%'}" :class="crKpiProgress.total.current >= crKpiProgress.total.target ? 'cr-fill-pass' : 'cr-fill-fail'"></div></div>
+                                        </div>
+                                        <div class="cr-progress-item">
+                                            <div class="cr-progress-label"><span>Công CP</span><span :class="crKpiProgress.cp.current >= crKpiProgress.cp.target ? 'text-success' : 'text-danger'">{{ crKpiProgress.cp.current }}/{{ crKpiProgress.cp.target }}</span></div>
+                                            <div class="cr-progress-bar"><div class="cr-progress-fill" :style="{width: crKpiProgress.cp.pct+'%'}" :class="crKpiProgress.cp.current >= crKpiProgress.cp.target ? 'cr-fill-pass' : 'cr-fill-fail'"></div></div>
+                                        </div>
+                                        <div class="cr-progress-item">
+                                            <div class="cr-progress-label"><span>Công Mini</span><span :class="crKpiProgress.mini.current >= crKpiProgress.mini.target ? 'text-success' : 'text-danger'">{{ crKpiProgress.mini.current }}/{{ crKpiProgress.mini.target }}</span></div>
+                                            <div class="cr-progress-bar"><div class="cr-progress-fill" :style="{width: crKpiProgress.mini.pct+'%'}" :class="crKpiProgress.mini.current >= crKpiProgress.mini.target ? 'cr-fill-pass' : 'cr-fill-fail'"></div></div>
+                                        </div>
+                                        <div style="display:flex;gap:1.5rem;margin-top:0.75rem;font-size:0.82rem;">
+                                            <span>Vi phạm: <strong :class="crKpiProgress.vipham > 0 ? 'text-danger' : 'text-success'">{{ crKpiProgress.vipham }}</strong></span>
+                                            <span>Nghỉ KP: <strong :class="crKpiProgress.nghikp > 0 ? 'text-danger' : 'text-success'">{{ crKpiProgress.nghikp }}</strong></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Days Grid -->
+                                    <div class="cr-days-panel">
+                                        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+                                            <div style="flex:1;min-width:200px;">
+                                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+                                                    <strong style="color:var(--secondary);font-size:0.82rem;"><i class='bx bx-calendar-check'></i> Ngày đi làm</strong>
+                                                    <span class="badge badge-success">{{ crWorkDays.length }}</span>
+                                                </div>
+                                                <div style="display:flex;flex-wrap:wrap;gap:0.35rem;">
+                                                    <span v-for="d in crWorkDays" :key="'cw'+d.day" class="badge" :class="d.is_cp ? 'badge-warning' : d.is_mini ? 'badge-default' : 'badge-success'" style="font-size:0.75rem;" :title="d.status + (d.is_cp ? ' (CP)' : '') + (d.is_mini ? ' (Mini)' : '')">{{ d.day }}</span>
+                                                    <span v-if="crWorkDays.length === 0" style="font-size:0.8rem;color:var(--text-muted);">Chưa có dữ liệu</span>
+                                                </div>
+                                            </div>
+                                            <div style="flex:1;min-width:200px;">
+                                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+                                                    <strong style="color:var(--danger);font-size:0.82rem;"><i class='bx bx-calendar-x'></i> Ngày OFF / Vắng</strong>
+                                                    <span class="badge badge-danger">{{ crOffDays.length }}</span>
+                                                </div>
+                                                <div style="display:flex;flex-wrap:wrap;gap:0.35rem;">
+                                                    <span v-for="d in crOffDays" :key="'co'+d.day" class="badge" :class="d.is_cp ? 'cr-badge-cp-off' : d.is_mini ? 'cr-badge-mini-off' : 'badge-danger'" style="font-size:0.75rem;" :title="(d.is_cp ? 'CP ' : '') + (d.is_mini ? 'Mini ' : '') + 'OFF'">{{ d.day }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Timesheet Detail Table -->
+                                <div class="cr-timesheet-section" v-if="crEmpTimesheet.length > 0">
+                                    <h4 style="margin:0 0 0.75rem 0;font-size:0.85rem;color:var(--text-muted);"><i class='bx bx-table'></i> Chi Tiết Chấm Công ({{ crEmpTimesheet.length }} bản ghi)</h4>
+                                    <div class="table-container" style="max-height:300px;overflow-y:auto;">
+                                        <table class="data-table" style="font-size:0.82rem;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ngày</th>
+                                                    <th>Ca</th>
+                                                    <th>Trạng thái</th>
+                                                    <th>Giờ công</th>
+                                                    <th>Loại ngày</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="r in crEmpTimesheet" :key="r.day" :class="{'cr-row-cancel': r.status === 'HỦY', 'cr-row-off': r.status === 'OFF' || r.status === 'NPL'}">
+                                                    <td><strong>{{ r.day }}</strong></td>
+                                                    <td>
+                                                        <span :class="['badge', ['S3','S10','S19','WORKING'].includes(r.status) ? 'badge-success' : r.status === 'HỦY' ? 'badge-danger' : 'badge-default']">{{ r.status }}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span v-if="['S3','S10','S19','WORKING'].includes(r.status)" style="color:var(--secondary);">✅ Hợp lệ</span>
+                                                        <span v-else-if="r.status === 'HỦY'" style="color:var(--danger);">⚠️ Hủy claim</span>
+                                                        <span v-else-if="r.status === 'NPL'" style="color:var(--danger);">❌ Nghỉ KP</span>
+                                                        <span v-else style="color:var(--text-muted);">{{ r.normalizedStatus }}</span>
+                                                    </td>
+                                                    <td>{{ r.working_hours }}h</td>
+                                                    <td>
+                                                        <span v-if="r.is_cp" class="badge badge-warning" style="font-size:0.7rem;">CP</span>
+                                                        <span v-if="r.is_mini" class="badge badge-default" style="font-size:0.7rem;">Mini</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div v-else class="cr-timesheet-section" style="text-align:center;padding:1.5rem;color:var(--text-muted);">
+                                    <i class='bx bx-info-circle' style="font-size:1.5rem;"></i>
+                                    <p style="margin:0.5rem 0 0;">Chưa có dữ liệu chấm công cho nhân viên này trong tháng {{ currentMonth }}/{{ currentYear }}.</p>
+                                </div>
+
+                                <!-- Notes / Feedback -->
+                                <div class="cr-notes-section">
+                                    <h4 style="margin:0 0 0.5rem 0;font-size:0.85rem;color:var(--text-muted);"><i class='bx bx-message-detail'></i> Ghi chú / Feedback</h4>
+                                    <textarea v-model="crEmpNotes[crSelectedEmpId]" class="form-input" rows="3" style="resize:vertical;min-height:60px;margin-bottom:0.5rem;" placeholder="Nhập ghi chú cho nhân viên này..."></textarea>
+                                    <button class="btn-primary" @click="saveCrNote(crSelectedEmpId)" style="padding:0.35rem 0.8rem;font-size:0.8rem;">
+                                        <i class='bx bx-save'></i> Lưu ghi chú
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Table -->
+                    <div class="card" style="margin-top:1rem;">
+                        <h3 style="margin-bottom:1rem;"><i class='bx bx-spreadsheet'></i> Bảng Tổng Hợp (Tháng {{ currentMonth }}/{{ currentYear }})</h3>
+                        <div class="table-container" style="overflow-x:auto;">
+                            <table class="data-table" style="font-size:0.82rem;">
+                                <thead>
+                                    <tr>
+                                        <th>OPS ID</th>
+                                        <th>Họ Tên</th>
+                                        <th>Vendor</th>
+                                        <th>Tổng Công</th>
+                                        <th>CP</th>
+                                        <th>Mini</th>
+                                        <th>Vi Phạm</th>
+                                        <th>Nghỉ KP</th>
+                                        <th>Kết Quả</th>
+                                        <th>Ghi Chú</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="emp in crFilteredEmployees" :key="'crt-'+emp.ops_id" :class="{'cr-row-selected': crSelectedEmpId === emp.ops_id}" @click="selectCrEmployee(emp.ops_id)" style="cursor:pointer;">
+                                        <td>{{ emp.ops_id }}</td>
+                                        <td>{{ emp.name }}</td>
+                                        <td>{{ emp.vendor }}</td>
+                                        <td>{{ emp.kpi?.total_ngay_cong || 0 }}/{{ systemConfig.target_total_cong }}</td>
+                                        <td>{{ emp.kpi?.total_ngay_cong_cp || 0 }}/{{ systemConfig.target_cp }}</td>
+                                        <td>{{ emp.kpi?.total_ngay_cong_mini || 0 }}/{{ systemConfig.target_mini }}</td>
+                                        <td>{{ emp.kpi?.vi_pham || 0 }}</td>
+                                        <td :class="{'text-danger font-bold': emp.kpi?.no_permission_leave > 0}">{{ emp.kpi?.no_permission_leave || 0 }}</td>
+                                        <td><span :class="['badge', emp.kpi?.result === 'PASS' ? 'badge-success' : 'badge-danger']">{{ emp.kpi?.result || 'N/A' }}</span></td>
+                                        <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.75rem;color:var(--text-muted);" :title="crEmpNotes[emp.ops_id] || ''">{{ crEmpNotes[emp.ops_id] || '—' }}</td>
+                                    </tr>
+                                    <tr v-if="crFilteredEmployees.length === 0">
+                                        <td colspan="10" style="text-align:center;padding:2rem;color:var(--text-muted);">Không có dữ liệu.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                </div> <!-- /.content-wrapper -->
+
+            </div> <!-- /.main-content -->
+        </div>
+
+        <!-- Complaint Modal -->
+        <div class="modal-backdrop" v-if="showComplaintModal" @click.self="showComplaintModal = false">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Tạo khiếu nại - {{ selectedEmp?.name }}</h3>
+                    <button class="close-btn" @click="showComplaintModal = false">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Ngày xin đối soát</label>
+                        <input type="date" v-model="complaintForm.date" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Loại vi phạm</label>
+                        <select v-model="complaintForm.type" class="form-input">
+                            <option value="NPL">Nghỉ không phép (NPL)</option>
+                            <option value="OFF">Nghỉ (OFF)</option>
+                            <option value="ViPham">Vi Phạm Khác</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Lý do giải trình</label>
+                        <textarea v-model="complaintForm.reason" class="form-input" rows="3"
+                            placeholder="Nhập lý do chi tiết..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Minh chứng đính kèm</label>
+                        <input type="file" class="form-input">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-outline" @click="showComplaintModal = false">Hủy</button>
+                    <button class="btn-primary" @click="submitComplaint">Gửi khiếu nại</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Contact Bar -->
+    </div><!-- /.app-body -->
+    <div class="footer-contact-bar">
+        <div class="footer-logo-wrap">
+            <img src="/logo.png" alt="Logo" class="footer-logo" onerror="this.style.display='none'">
+            <div class="footer-brand">
+                <div class="footer-brand-name">Tài Nguyễn HR</div>
+                <div class="footer-brand-sub">HR Consulting &amp; Management System</div>
+            </div>
+        </div>
+        <div class="footer-divider"></div>
+        <div class="footer-contacts">
+            <a href="mailto:tainguyenhr.dev@gmail.com" class="footer-contact-item">
+                <div class="footer-contact-icon" style="background: rgba(234,67,53,0.15); color: #ea4335;">
+                    <i class='bx bx-envelope'></i>
+                </div>
+                <div class="footer-contact-text">
+                    <div class="footer-contact-label">Gmail</div>
+                    <div class="footer-contact-value">tainguyenhr.dev@gmail.com</div>
+                </div>
+            </a>
+            <a href="https://zalo.me/0586482344" target="_blank" class="footer-contact-item">
+                <div class="footer-contact-icon" style="background: rgba(0,130,250,0.15); color: #0082fa;">
+                    <svg viewBox="0 0 48 48" fill="currentColor" width="16" height="16">
+                        <circle cx="24" cy="24" r="20" /><text x="50%" y="55%" dominant-baseline="middle"
+                            text-anchor="middle" font-size="18" font-weight="bold" fill="white"
+                            font-family="Arial">Z</text>
+                    </svg>
+                </div>
+                <div class="footer-contact-text">
+                    <div class="footer-contact-label">Zalo</div>
+                    <div class="footer-contact-value">0586 482 344</div>
+                </div>
+            </a>
+        </div>
+        <div class="footer-divider"></div>
+        <div class="footer-copy">&copy; 2026 Tài Nguyễn HR &middot; KPI System v2.0</div>
+    </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
